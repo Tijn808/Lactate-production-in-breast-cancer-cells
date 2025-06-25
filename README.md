@@ -22,6 +22,7 @@ To answer the research question it is useful to be able to knock out genes, and 
 
 **Additional model**
 Comparative models such as modelaerobicCadd were created to analyze the metabolic effects of these knockouts under aerobic conditions. By adjusting the objective and constraints similarly, FBA was used again to examine ATP and lactate production. The reactions with the largest differences in fluxes were flagged using absolute flux difference vectors. These differences were visualized with draw_by_met, focusing on metabolites like lactate.
+![ModelCadd](https://github.com/user-attachments/assets/37ce5f7e-8acc-4fea-8e17-81d4e9cd3ba6)
 
 **Table**
 Furthermore, a table represents all expressions of genes before and after knockout, the genes that showed no difference before and after knockout were also included. This allowed for easier research by looking at the expression rates differences indicated with the HGNC code. The variables in the table included the reaction ID, flux value in the reference cancer model, flux value after gene deletions, gene-protein-reaction (GPR) rule, and the difference in flux. Reactions related to ATP and LDH were manually appended to highlight central metabolic effects. Only non-zero flux changes were considered in a filtered version of the table for clarity.
