@@ -1,29 +1,27 @@
-# Lactate-production-in-breast-cancer-cells
-BBS2061 
 **Computational environment**
-MATLAB2021b was used to conduct this research, during installation the Bioinformatics toolbox was added. Git and Curl were installed using CobraToolbox (initCobraToolbox). The data processing was conducted using MacOS Seqouia 15.4 (24E248). Because of issues using the defealt solver with MacOS, Gurobi Solver was installed. Additionally, the GLPK solver was suitable for linear optimization problems in flux balance analysis (changeCobraSolver('glpk','all')). 
+MATLAB2021b was used to conduct this research, during installation the Bioinformatics toolbox was added. Git and Curl were installed using CobraToolbox (initCobraToolbox). The data processing was conducted using MacOS Seqouia 15.4 (24E248). Because of issues using the default solver with MacOS, Gurobi Solver was installed. Additionally, the GLPK solver was suitable for linear optimization problems in flux balance analysis (changeCobraSolver('glpk','all')). For visualization and model interrogation, functions like draw_by_met, printRxnFormula, and optimizeCbModel were used.
 
 **Data**
-A Genome-Scale Metabolic (GEM) model 'recon22.mat' was provided by University of Maastricht which simulated the conditions of a breast cancer model. The model was changed to simulate RPMI-1640 medium conditions using a provided script ('RPMImediumSimulation.m'), which adjusts metabolic reactions according to given nutrient availability in the medium. A data file was imported which was called BreastCancer_geneExpressionData.txt, a file containing 25.000+ gene Ensembl IDs, the HGNC ID and the expression rate for these genes in breast cancer. All genes with an expression level of zero were filtered using:
-gxData = readtable('BreastCancer_geneExpressionData.txt');
-index = string(table2array(gxData(:,3))) == '0';
-genesToRemove = intersect(table2cell(gxData(index,2)), modelRPMI.genes);.
+A Genome-Scale Metabolic (GEM) model 'recon22.mat' was provided by University of Maastricht which simulated the conditions of a breast cancer model. The model was changed to simulate RPMI-1640 medium conditions using a provided script (RPMImediumSimulation.m), which adjusts metabolic reactions according to given nutrient availability in the medium. A data file was imported which was called BreastCancer_geneExpressionData.txt, a file containing 25.000+ gene Ensembl IDs, the HGNC ID and the expression rate for these genes in breast cancer. From this dataset, genes with a 0 expression value were identified and marked for deletion. These were matched against the model’s genes and stored in the variable genesToRemove. The gene-protein-reaction (GPR) rule was used to investigate the effects of knocking out a gene or multiple genes. 
 
 **Code**
-**Aerobic**
-he objective function for this GEM was set to maximize ATP production (modelaerobic = changeObjective(modelaerobic, 'DM_atp_c_');). To uncontstraint this model, the uptake reactions have negative fluxes, this allows the cell to uptake 1000 mmol/gDW/min of oxigen (modelaerobic = changeRxnBounds(modelaerobic, 'EX_o2(e)', -1000, 'l');). this represents the hydrolysis of ATP to ADP and Pi taking place in the cytosol of the cell. 
-To optimize the ATP flux function (DM_atp_c_) the following code was used:
-FBAaerobic = optimizeCbModel(modelaerobic, 'max');
-FBAaerobic
-FBAaerobic.objmodelanaerobic = modelRPMI;
+The objective function for this GEM was set to maximize ATP production ('DM_atp_c_'). To reduce the constraint on this model, the uptake reactions have negative fluxes, this allows the cell to uptake 1000 mmol/gDW/min of oxygen. This represents the hydrolysis of ATP to ADP and Pi taking place in the cytosol of the cell. Optimization can be altered by changing the function from 'DM_atp_c_' to a different metabolite in the model.
 
-**Anearobic**
-The code is needed to compute the model in anearobic conditions 
-modelanaerobic = changeRxnBounds(modelanaerobic, 'EX_o2(e)', 0, 'l');
-modelanaerobic = changeObjective(modelanaerobic,'DM_atp_c_');
-To make a visual representation of the model (draw_by_met(model, {'lac_L[c]'}, 'true', 1, 'struc', {''}, FBAaerobic.v);draw_by_met(model, {'lac_L[c]'}, 'true', 1, 'struc', {''}, FBAanaerob.v);).
+**Add model aerobic**
+The model was duplicated into a new variable called modelaerobic or modelaerobicC (for the cancer model), and the oxygen uptake reaction 'EX_o2(e)' was set to -1000, simulating aerobic conditions. Flux Balance Analysis (FBA) was then run with this setting using optimizeCbModel.
 
-To answer the research question it is useful to be able to knock-out genes, and be able to see the effect. 
+**Add model anaerobic**
+To simulate anaerobic conditions, the model was copied to a new variable called modelanaerobic, and the oxygen uptake was set to 0 mmol/gDW/min using changeRxnBounds. This restricts all oxygen entry into the system. ATP production was again set as the objective, and the model was optimized. 
+
+**Knock out genes**
+To answer the research question it is useful to be able to knock out genes, and be able to see the effect. Genes were knocked out by using the HGNC code provided by the dataset. The base cancer model was created by removing all genes with 0 expression (genesToRemove). An extended model, modelCadd, was then generated by adding specific gene knockouts (e.g., HGNC:6544 for TP53, HGNC:10924 for LDHA, HGNC:11005 for AK5). The function deleteModelGenes was used with the list genesToRemoveAdd, which included the additional knockouts. The flux through reactions like ADK3 and LDH_L was examined before and after knockouts to study the effect.
+
+**Additional model**
+Comparative models such as modelaerobicCadd were created to analyze the metabolic effects of these knockouts under aerobic conditions. By adjusting the objective and constraints similarly, FBA was used again to examine ATP and lactate production. The reactions with the largest differences in fluxes were flagged using absolute flux difference vectors. These differences were visualized with draw_by_met, focusing on metabolites like lactate.
+
+**Table**
+Furthermore, a table represents all expressions of genes before and after knockout, the genes that showed no difference before and after knockout were also included. This allowed for easier research by looking at the expression rates differences indicated with the HGNC code. The variables in the table included the reaction ID, flux value in the reference cancer model, flux value after gene deletions, gene-protein-reaction (GPR) rule, and the difference in flux. Reactions related to ATP and LDH were manually appended to highlight central metabolic effects. Only non-zero flux changes were considered in a filtered version of the table for clarity.
+
 
 
 
