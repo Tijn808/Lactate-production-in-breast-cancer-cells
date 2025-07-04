@@ -1,0 +1,278 @@
+% Import the gene expression data
+gxData = readtable('BreastCancer_geneExpressionData.txt');
+
+% Create an index of all genes with expression of 0
+index = string(table2array(gxData(:,3))) == '0';
+
+modelRPMI.rules = modelCadd.rules;
+% Remove genes with 0 expression from model
+genesToRemove = intersect(table2cell(gxData(index,2)), modelRPMI.genes);
+[modelRPMIcancer, hasEffect, constrRxnNames, deletedGenes] =...
+    deleteModelGenes(modelRPMI, genesToRemove);
+
+adk3_index = find(strcmp(modelCadd.rxns, 'ADK3'));
+ldhd = find(strcmp(modelCadd.rxns, 'LDH_D'));
+bound_adk3 = modelCadd.ub(adk3_index);
+
+% Option: remove one or more additional genes from the model (e.g. inhibition by drugs, knock-out or loss-of-function)
+% HGNC ID   HGNC symbol
+% -------       -----------
+
+% HGNC:P53
+genesToRemoveAdd = genesToRemove;
+genesToRemoveAdd{end + 1} = 'HGNC:10850';
+ %Ak5 involved in synthesis of adelate
+
+[modelCadd, hasEffect, constrRxnNames, deletedGenes] =...
+    deleteModelGenes(modelRPMI, genesToRemoveAdd, 0);
+bound_adk3 = modelCadd.ub(adk3_index)
+
+% Section 2: Simulate ATP production in cancer cells under aerobic conditions
+% Let's perform the flux balance analysis for an aerobic cancer model and the cancer cell model with additional gene deletions:
+% Reference model
+modelaerobicC = modelRPMIcancer;
+modelaerobicC = changeObjective(modelaerobicC, 'DM_atp_c_');
+modelaerobicC = changeRxnBounds(modelaerobicC, 'EX_o2(e)', -1000, 'l');
+FBAaerobicC = optimizeCbModel(modelaerobicC, 'max');
+
+% Model with additional gene deletions
+modelaerobicCadd = modelCadd;
+modelaerobicCadd = changeObjective(modelaerobicCadd, 'DM_atp_c_');
+modelaerobicCadd = changeRxnBounds(modelaerobicCadd, 'EX_o2(e)', -1000, 'l');
+FBAaerobicCadd = optimizeCbModel(modelaerobicCadd, 'max');
+
+rxns = modelaerobic.rxns;
+grRules = modelaerobic.grRules;
+
+fluxes_normal = FBAaerobic.v;
+fluxes_cancer = FBAaerobicC.v;
+fluxes_cancer_Del = FBAaerobicCadd.v;
+
+results_table = table(rxns, fluxes_normal, fluxes_cancer, fluxes_cancer_Del, grRules, ...
+    'VariableNames', {'Rxn', 'Normal', 'Cancer', 'CancerDel', 'GPR_rules'});
+
+results_table.Diff_Cancer = results_table.Cancer - results_table.Normal;
+results_table.Diff_CancerDel = results_table.CancerDel - results_table.Normal;
+results_table.HasChange_Cancer = abs(results_table.Diff_Cancer) > 1e-6;
+results_table.HasChange_CancerDel = abs(results_table.Diff_CancerDel) > 1e-6;
+
+
+changed_rxns = results_table(results_table.HasChange_Cancer | results_table.HasChange_CancerDel, :);
+disp(changed_rxns);
+
+modelaerobicCadd.ub(adk3_index)
+FBAaerobicCadd.v(adk3_index) % get flux in FBAaerobicCadd of this specific reaction
+% compare models
+rxns_cancer = modelaerobicCadd.rxns;
+grRules = modelaerobicCadd.grRules;
+
+fluxes_aerobic = FBAaerobicC.v;
+fluxes_aerobic_gene_del = FBAaerobicCadd.v;
+
+results_table = table(rxns_cancer, fluxes_aerobic, fluxes_aerobic_gene_del, grRules, ... ;
+    'VariableNames', {'Rxn', 'Reference', 'Gene_del', 'GPR_rules'});
+
+results_table.Difference = results_table.Reference - results_table.Gene_del
+results_table.HasDifference = results_table.Difference ~= 0;
+
+results_table_filtered = results_table(~isnan(results_table.Reference) & ... ;
+    ~isnan(results_table.Gene_del), :);
+
+results_table_filtered = results_table_filtered((results_table.Reference ~=0) & ... ;
+    (results_table.Gene_del ~= 0), :);
+ldh_rxn_id = find(contains(modelaerobicC.rxns, 'LDH'));  % try with modelRPMI if needed
+modelaerobicC.rxns(ldh_rxn_id)
+
+ldh_index = find(strcmp(modelaerobicC.rxns, 'LDH_L'));  % Replace 'LDH_L' if your model uses a different ID
+
+
+flux_ldh_ref = FBAaerobicC.v(ldh_index);       % before gene knockout
+flux_ldh_ko  = FBAaerobicCadd.v(ldh_index);    % after gene knockout
+
+fprintf('Lactate production flux before KO: %.4f\n', flux_ldh_ref);
+fprintf('Lactate production flux after  KO: %.4f\n', flux_ldh_ko);
+fprintf('Change in lactate production:      %.4f\n', flux_ldh_ref - flux_ldh_ko);
+
+rxns_with_lactate_L = findRxnsFromMets(modelaerobicC, 'lac_L[c]');
+printRxnFormula(modelaerobicC, rxns_with_lactate);
+rxns_with_lactate_D = findRxnsFromMets(modelaerobicC, 'lac_D[c]');
+printRxnFormula(modelaerobicC, ldhd_rxn);
+
+% Find all exchange reactions
+exchange_rxns = findExcRxns(modelaerobicC);
+
+% Find exchange reactions involving extracellular lactate (e.g. 'lac_L[e]')
+rxns_with_lac_e = findRxnsFromMets(modelaerobicC, 'lac_L[e]');
+
+% Intersect with exchange reactions
+lac_exchange_rxns = intersect(modelaerobicC.rxns(exchange_rxns), rxns_with_lac_e);
+
+% Display the lactate exchange reaction(s)
+disp('Lactate exchange reactions:');
+disp(lac_exchange_rxns);
+
+% If there's one lactate exchange reaction, get its flux before and after KO
+if ~isempty(lac_exchange_rxns)
+	lac_ex_index = find(strcmp(modelaerobicC.rxns, lac_exchange_rxns{1}));
+	flux_lac_ex_ref = FBAaerobicC.v(lac_ex_index);
+	flux_lac_ex_ko  = FBAaerobicCadd.v(lac_ex_index);
+	fprintf('\n--- Lactate Exchange Flux ---\n');
+	fprintf('Before KO: %.4f\n', flux_lac_ex_ref);
+	fprintf('After  KO: %.4f\n', flux_lac_ex_ko);
+	fprintf('Change   : %.4f\n', flux_lac_ex_ref - flux_lac_ex_ko);
+else
+	disp('No lactate exchange reaction found.');
+end
+
+% Find all exchange reactions
+exchange_rxns = findExcRxns(modelaerobicC);
+
+ldh_rxns = findRxnsFromMets(modelaerobicC, 'pyr[c]');
+printRxnFormula(modelaerobicC, ldh_rxns);
+
+% Find reactions involving NAD+ (nad[c]) or NADH (nadh[c])
+rxns_with_nad = findRxnsFromMets(modelaerobicC, {'nad[c]', 'nadh[c]'});
+
+% Display reaction formulas
+printRxnFormula(modelaerobicC, rxns_with_nad);
+
+% Find reactions that involve NAD or NADH
+nad_related_rxns = findRxnsFromMets(modelaerobicC, {'nad[c]', 'nadh[c]'});
+
+
+
+% Compare fluxes for NAD-related reactions before and after knockout
+fprintf('\n--- NAD/NADH Flux Change Due to HGNC Knockout ---\n');
+for i = 1:length(nad_related_rxns)
+	rxn = nad_related_rxns{i};
+	idx = find(strcmp(modelaerobicCadd.rxns, rxn));
+	flux_ref = FBAaerobicC.v(idx);
+	flux_ko  = FBAaerobicCadd.v(idx);
+	diff     = flux_ref - flux_ko;
+	if abs(diff) > 1e-6  % only show meaningful changes
+		fprintf('Reaction: %-20s  Flux change: %.4f (%.4f → %.4f)\n', rxn, diff, flux_ref, flux_ko);
+	end
+end
+
+% Step 1: Find reactions involving pyruvate in the gene deletion model
+pyruvate_rxns = findRxnsFromMets(modelaerobicCadd, 'pyr[c]');
+
+% Step 2: Print formulas with fluxes and differences
+fprintf('\n--- Pyruvate-Related Reactions: Before vs After Gene Deletion ---\n');
+fprintf('%-20s  %-50s  %-10s  %-10s  %-10s\n', 'Rxn ID', 'Formula', 'Before', 'After', 'Δ Flux');
+
+for i = 1:length(pyruvate_rxns)
+	rxn_id = pyruvate_rxns{i};
+	idx_ref = find(strcmp(modelaerobicC.rxns, rxn_id));
+	idx_ko  = find(strcmp(modelaerobicCadd.rxns, rxn_id));
+
+	% Get reaction formula
+	formula = printRxnFormula(modelaerobicCadd, rxn_id, false, false);
+	
+	% Get fluxes (with fallback if reaction missing in one model)
+	if isempty(idx_ref)
+		flux_ref = NaN;
+	else
+		flux_ref = FBAaerobicC.v(idx_ref);
+	end
+
+	if isempty(idx_ko)
+		flux_ko = NaN;
+	else
+		flux_ko = FBAaerobicCadd.v(idx_ko);
+	end
+
+	% Compute difference
+	if ~isnan(flux_ref) && ~isnan(flux_ko)
+		flux_diff = flux_ko - flux_ref;
+	else
+		flux_diff = NaN;
+	end
+
+	% Print nicely
+	fprintf('%-20s  %-50s  %10.4f  %10.4f  %10.4f\n', ...
+		rxn_id, formula{1}, flux_ref, flux_ko, flux_diff);
+end
+% Metabolite ID for cytosolic NADH
+nadh_id = 'nadh[c]';  
+
+% Step 1: Find reactions involving NADH
+nadh_rxns = findRxnsFromMets(modelaerobicC, nadh_id);
+
+% Step 2: Get metabolite index
+nadh_idx = find(strcmp(modelaerobicC.mets, nadh_id));
+
+% Initialize total fluxes
+total_nadh_flux_ref = 0;
+total_nadh_flux_ko  = 0;
+
+% Step 3: Loop over each NADH-related reaction
+for i = 1:length(nadh_rxns)
+	rxn_id = nadh_rxns{i};
+	rxn_idx_ref = find(strcmp(modelaerobicC.rxns, rxn_id));
+	rxn_idx_ko  = find(strcmp(modelaerobicCadd.rxns, rxn_id));
+
+	% Stoichiometric coefficient of NADH in this reaction
+	coeff = modelaerobicC.S(nadh_idx, rxn_idx_ref);
+
+	% Multiply by flux before and after KO
+	flux_ref = FBAaerobicC.v(rxn_idx_ref);
+	flux_ko  = FBAaerobicCadd.v(rxn_idx_ko);
+
+	% Net NADH production/consumption from this reaction
+	total_nadh_flux_ref = total_nadh_flux_ref + coeff * flux_ref;
+	total_nadh_flux_ko  = total_nadh_flux_ko  + coeff * flux_ko;
+end
+
+% Display results
+fprintf('--- Total Net NADH Flux ---\n');
+fprintf('Before knockout: %.4f\n', total_nadh_flux_ref);
+fprintf('After  knockout: %.4f\n', total_nadh_flux_ko);
+fprintf('Change in NADH flux: %.4f\n', total_nadh_flux_ko - total_nadh_flux_ref);
+
+% Find all exchange reactions
+exchange_rxns = findExcRxns(modelaerobicC);
+
+% Find the exchange reaction(s) that involve extracellular pyruvate
+pyruvate_ex_rxns = findRxnsFromMets(modelaerobicC, 'pyr[e]');
+pyruvate_ex_rxns = intersect(modelaerobicC.rxns(exchange_rxns), pyruvate_ex_rxns);
+
+fprintf('\n--- Pyruvate Exchange Input/Output ---\n');
+
+for i = 1:length(pyruvate_ex_rxns)
+	rxn_id = pyruvate_ex_rxns{i};
+	idx_ref = find(strcmp(modelaerobicC.rxns, rxn_id));
+	idx_ko  = find(strcmp(modelaerobicCadd.rxns, rxn_id));
+
+	formula = printRxnFormula(modelaerobicC, rxn_id, false, false);
+
+	flux_ref = FBAaerobicC.v(idx_ref);
+	flux_ko  = FBAaerobicCadd.v(idx_ko);
+
+	% Interpret input/output
+	in_ref  = max(0,  flux_ref);
+	out_ref = max(0, -flux_ref);
+	in_ko   = max(0,  flux_ko);
+	out_ko  = max(0, -flux_ko);
+
+	fprintf('\nReaction: %s\nFormula:  %s\n', rxn_id, formula{1});
+	fprintf('Reference Model:   Input = %.4f, Output = %.4f\n', in_ref, out_ref);
+	fprintf('Gene KO Model:     Input = %.4f, Output = %.4f\n', in_ko,  out_ko);
+end
+
+% Find index of the ATP demand reaction
+atp_rxn_id = 'DM_atp_c_';
+atp_index = find(strcmp(modelaerobicC.rxns, atp_rxn_id));
+
+% Extract fluxes for ATP production
+atp_flux_ref = FBAaerobicC.v(atp_index);
+atp_flux_ko  = FBAaerobicCadd.v(atp_index);
+
+% Compute difference
+delta_atp_flux = atp_flux_ko - atp_flux_ref;
+
+% Display results
+fprintf('\n--- ATP Production Reaction Flux (DM_atp_c_) ---\n');
+fprintf('Reference model (no additional KO): %.4f mmol/gDW/h\n', atp_flux_ref);
+fprintf('Knockout model: %.4f mmol/gDW/h\n', atp_flux_ko);
+fprintf('Change due to KO: %.4f mmol/gDW/h\n', delta_atp_flux);
