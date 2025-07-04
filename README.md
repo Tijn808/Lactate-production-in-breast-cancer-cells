@@ -113,6 +113,36 @@ Our study faced some difficulties and limitations. One of the main limitations w
 
 **To conclude, SHMT1 deletion does not reduce pyruvate secretion but induces intracellular reorganization. Pyruvate production is increased, serine is diverted from one-carbon metabolism, and nucleotide synthesis is redirected to promote glycolysis. Eventually, lactate production was supported by serine, via PKM2.**
 
+> **References:**
+**Introduction:**
+[1]	Yang M, Vousden KH. Serine and one-carbon metabolism in cancer. Nat Metab. 2021;3(1):21–32. https://doi.org/10.1038/s42255-020-00329-9
+[2] 	Anderson NM, Mucka P, Kern JG, Feng H. The emerging role and targetability of the TCA cycle in cancer metabolism. Protein Cell. 2018 Mar;9(2):216–32. doi:10.1007/s13238-017-0422-1.
+[3]	Pérez‑Tomás R, Pérez‑Guillén I. Lactate in the Tumor Microenvironment: An Essential Molecule in Cancer Progression and Treatment. Cancers (Basel). 2020 Nov 3;12(11):3244. doi:10.3390/cancers12113244.  
+[4] 	Tymoczko JL, Berg JM, Stryer L. Biochemistry: A Short Course. 1st ed. New York: W.H. Freeman and Company; 2010.
+[5]	Yang M, Vousden KH. Serine and one‑carbon metabolism in cancer. Nat Rev Cancer. 2016 Oct;16(10):650–662. doi:10.1038/nrc.2016.81. 
+[6]	Sánchez‑Castillo A, Vooijs M, Kampen KR. Linking Serine/Glycine Metabolism to Radiotherapy Resistance. Cancers. 2021 Mar 10;13(6):1191. doi:10.3390/cancers13061191. 
+[7]	Orth JD, Thiele I, Palsson BØ. What is flux balance analysis? Nature Biotechnology. 2010 Mar;28(3):245–248. doi:10.1038/nbt.1614. 
+[8]	Edwards JS, Covert M, Palsson BØ. Metabolic modelling of microbes: the flux‑balance approach. Environ Microbiol. 2002 Jun;4(3):133–140. doi:10.1046/j.1462-2920.2002.00282.x
+
+**Methods:**
+[9] 	Cancer Genome Atlas Network (2012) “Comprehensive molecular portraits of human breast tumours.” Nature, 490(7418):61-70. doi: 10.1038/nature11412
+[10] 	Swainston N, et al. Recon 2.2: from reconstruction to model of human metabolism. Metabolomics. 2016;12:109. doi:10.1007/s11306-016-1051-4.
+
+**Discussion:**
+[11] Li, Y., Dash, R. K., Kim, J., Saidel, G. M., & Cabrera, M. E. (2009). Role of NADH/NAD+transport activity and glycogen store on skeletal muscle energy metabolism during exercise: in silico studies. American Journal of Physiology-Cell Physiology, 296(1), C25–C46. https://doi.org/10.1152/ajpcell.00094.2008.
+[12] Zhang, X., & Wang, Z. (2024). Targeting SHMTs and MTHFDs in cancer: attractive opportunity for anti-tumor strategy. Frontiers in Pharmacology, 15. https://doi.org/10.3389/fphar.2024.1335785
+[13] Yang, Y., Zhang, M., Zhao, Y., Deng, T., Zhou, X., Qian, H., Wang, M., Zhang, C., Huo, Z., Mao, Z., Shao, Z., Liu, M., Yang, C., Lin, C., Xu, F., Tian, G., & Zhang, Y. (2023). HOXD8 suppresses renal cell carcinoma growth by upregulating SHMT1 expression. Cancer Science, 114(12), 4583–4595. https://doi.org/10.1111/cas.15982
+[14]	Dou, C., Xu, Q., Liu, J., Wang, Y., Zhou, Z., Yao, W., Jiang, K., Cheng, J., Zhang, C., & Tu, K. (2019). SHMT1 inhibits the metastasis of HCC by repressing NOX1-mediated ROS production. Journal of Experimental & Clinical Cancer Research : CR, 38(1), 70. https://doi.org/10.1186/s13046-019-1067-5 
+[15] Amelio, I., Cutruzzolá, F., Antonov, A., Agostini, M., & Melino, G. (2014). Serine and glycine metabolism in cancer. Trends in Biochemical Sciences, 39(4), 191–198. https://doi.org/10.1016/j.tibs.2014.02.004 
+
+**Programs used:**
+[16] MATLAB and Statistics Toolbox Release 2021b, The MathWorks, Inc., Natick, Massachusetts, United States. 
+[17] Heirendt, L., Arreckx, S., Pfau, T. et al. Creation and analysis of biochemical constraint-based models using the COBRA Toolbox v.3.0. Nat Protoc 14, 639–702 (2019).  https://doi.org/10.1038/s41596-018-0098-2
+[18] Makhorin A. GNU Linear Programming Kit (GLPK). Available at: https://www.gnu.org/software/glpk/ 
+[19] Tijn808. Lactate production in breast cancer cells [Internet]. GitHub; 2024 [cited 2025 Jul 2]. Available from: https://github.com/Tijn808/Lactate-production-in-breast-cancer-cells
+
+
+
 
 
 
