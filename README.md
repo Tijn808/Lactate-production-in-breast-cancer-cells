@@ -77,24 +77,42 @@ Furthermore, a table represents all expressions of genes before and after knocko
 
 
 > **Results**
- 
-Pyruvate exchange was not influenced by SHMT1 knockout. The pyruvate exchange reaction EX_pyr (e) exhibited no input flux and an equivalent output flux of 2.6339 mmol/gDW/hr in both the reference cancer model and the SHMT1 knockout model (Figure 2). This suggests that pyruvate secretion remains mostly unaffected by the SHMT1 gene deletion in aerobic conditions. ATP flux change. 
+We used FBA to compare the reference model to the SHMT1 knockout model in order to examine the impact of SHMT1 knockout on cancer cell metabolism. The analysis focused on exchange reactions, pyruvate-linked pathways,  and internal flux rerouting, all under aerobic conditions. 
+
+First we looked at the potential effects of deleting SHMT1 on pyruvate secretion, which is essential for the production of energy and biomass. In both models (Reference and SHMT1 KO) , the pyruvate exchange reaction on EX_pyr (e) exhibited no input flux and an equivalent output flux of 2.6339 mmol/gDW/hr (Figure 3). 
 
 ![Image 04-07-2025 at 12 03](https://github.com/user-attachments/assets/1c2196ca-ba2e-44c3-a6b0-844f7b9dc04a)
-Figure 2: Flux values for the pyruvate exchange reaction (EX_pyr(e))
+Figure 3: Flux values for the pyruvate exchange reaction (EX_pyr(e))
 in the reference and SHMT1 knockout (KO) models.
   
-The COBRA Toolbox function findExcRxns revealed that no lactate exchange reaction (e.g., EX_lac_L(e)) produced active input or output fluxes under either model. Internal processes catalyzed by LDH_L (Lactate dehydrogenase), namely the reaction: lac_L[c] + nad[c] ⇌ h[c] + nadh[c] + pyr[c],  exhibited significant flux variations (from -850.81 to 1000.00 mmol/gDW/hr), this did not result in extracellular lactate export (figure 3). 
+To identify which reactions were affected by SHMT1 deletion, first we reviewed a flux difference table generated from the model (see appendix). The table allowed us to compare flux values before and after the knockout by highlighting non-zero changes in internal pathways. From this, we pinpointed key reactions which had significant shifts in flux:  LDH-L, r0160, and r0153. 
+
+Next, we analyzed lactate secretion, a key marker of the Warburg effect. By using the COBRA function findExcRXns, we discovered that the lactate exchange reaction (EX_lac_L(e)) had zero flux in both models. However, internal processes catalyzed by LDH_L (Lactate dehydrogenase), namely the reaction: lac_L[c] + nad[c] ⇌ h[c] + nadh[c] + pyr[c],  exhibited significant flux variations (from -850.81 to 1000.00 mmol/gDW/hr), this resulted in no extracellular lactate export (Figure 4). 
  
 ![Image 04-07-2025 at 12 04](https://github.com/user-attachments/assets/455f823f-60b1-40af-b300-5db8f152a138)
-Figure 3: Flux Change in Lactate Dehydrogenase Reaction (LDH_L) After SHMT1 Knockout.
+Figure 4: Flux Change in Lactate Dehydrogenase Reaction (LDH_L) After SHMT1 Knockout.
  
-The reaction r0160, where serine-pyruvate transaminase catalyzes pyruvate and L-serine into L-alanine and hydroxypyruvate, was significantly upregulated. The flux through this transamination pathway, after SHMT1 knockout, increased from 1.0602 to 465.8800 mmol/gDW/hr respectively (Figure 3). 
  
-Additionally, the CTP synthase reaction using PEP (reaction r0153), which  links glycolytic intermediates to nucleotide synthesis, was strongly activated. This reaction uses phosphoenolpyruvate (PEP), CDP and a proton to produce CTO and pyruvate: cdp[c] + h[c] + pep[c] → ctp[c] + pyr[c]. The flux increased from 0.0000 to 1000.0000 mmol/gDW/hr (Figure 4). This reaction links glycolysis directly to nucleotide synthesis.
+Following SHMT1 knockout, two internal reactions connected to pyruvate use demonstrated significant upregulation. The flux through the Serine-pyruvate transaminase reaction (r0160) increased from 1.0602 to 465.8800 mmol/gDW/hr respectively (Figure 5).  Additionally, the flux through the CTP synthase reaction using PEP (reaction r0153),  was increased from 0.0000 to 1000.0000 mmol/gDW/hr (Figure 5). 
 
 ![Image 04-07-2025 at 12 04 (1)](https://github.com/user-attachments/assets/9f63b547-5387-4bbf-b3e8-aab0d380ea31)
-Figure 4: Flux Changes in Pyruvate-Linked Reactions r0160 and r0153 After SHMT1 Knockout.
+Figure 5: Flux Changes in Pyruvate-Linked Reactions r0160 and r0153 After SHMT1 Knockout.
+
+> **Discussion**
+According to our results, SHMT1 knockout has no effect on extracellular pyruvate secretion (Figure 3),  and did not affect lactate export. The flux of internal LDH changed direction, which might indicate that the cell maintained redox balance, by internally producing lactate, possibly to regenerate NAD+. Li et al. (2009)  demonstrated a similar idea, by using a computational model on skeletal muscle, showing that the production of lactate is firmly regulated by the cytosolic NADH/NAD⁺ redox balance. They also found that mitochondrial NADH/NAD+ shuttles capacity increased, lactate levels were reduced significantly  without disrupting energy production [11]. This suggests that lactate excretion is not necessarily required for the maintenance of energy balance. Instead, it indicates a compensatory mechanism under redox stress.
+> 
+SMHT1 KO results in a big repositioning of intracellular metabolic fluxes. Phosphoenolpyruvate (PEP) and pyruvate recycling reactions, cdp[c] + h[c] + pep[c] → ctp[c] + pyr[c], ( r0153 ) were significantly upregulated, sustaining biosynthetic and redox balance. Its activation after SHMT1 knockout indicates that the cell compensates for disrupted 1C nucleotide synthesis by upregulating that alternative, glycolysis-dependent nucleotide production pathways (r0153), which might indicate the flexibility of a metabolic network that is able to adapt to genetic perturbations. In addition, ATP production kept its stability despite those changes, meaning that the cell was able to maintain its energy output. 
+
+In a similar study, by Zhang et al (2024), it found that SHMT1 inhibition, in lung cancer, induced apoptosis by inducing p53, and cell cycle arrest [12]. This supports the idea that the inhibition of SHMT1 may induce tumor suppression pathways. On the other hand, a different study, by Yang et al (2023), found that overexpression of SHMT1, in renal cancer, slowed down the growth of the cancer cells [13]. This paradox illustrates the possibility of depending on the tumor's metabolic context and/or its reliance on 1C metabolism.
+
+Another study, made by Dou et al. (2019) demonstrated in their study that due to damaged NADPH regeneration and upregulation of its oxidase NOX1, knocking out SHMT1 in hepatic cancer cells increased ROS levels [14]. These findings support our findings that SHMT1-KO disrupted redox balance that would result in a compensatory pathway.
+
+Additionally, after knocking out SHMT1, serine starts likely to accumulate, due to disabled 1C flux. Amelio et al (2014), found that serine is an allosteric activator of PKM2, which helps in glycolysis. Therefore, the more serine, the higher PKM2 activity and thus more lactate production [15]. As a result of SHMT1 KO, PKM2 increases and more lactate is produced, which promotes a Warburg-like behaviour. Another way to use the excess serine is serine-pyruvate transaminase reaction (r0160), as after the knockout, its activity was dramatically increased (Figure.5). r0160 simply uses serine to generate alanine, for the biomass, and hydroxypyruvate, that might contribute to redox balance. This reaction is also considered as a compensatory (or alternative) pathway.
+
+Our study faced some difficulties and limitations. One of the main limitations we faced is finding relevant studies about knocking out SHMT1 that would support ours. We suggest that more studies regarding this topic in the future might be helpful. Another limitation of our model is that the data is very narrow and specific. The gene expression data was collected from Caucasian women aged 60–75 with stage IA tumors. Which reduces the applicability to more breast cancer cases, with different ethnicities, ages, and stages.
+
+**To conclude, SHMT1 deletion does not reduce pyruvate secretion but induces intracellular reorganization. Pyruvate production is increased, serine is diverted from one-carbon metabolism, and nucleotide synthesis is redirected to promote glycolysis. Eventually, lactate production was supported by serine, via PKM2.**
+
 
 
 
